@@ -18,7 +18,7 @@ resource "aws_security_group" "ansible_controller" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["94.177.40.198/32"]
+    cidr_blocks = ["92.86.142.69/32"]
   }
 
   egress {
@@ -39,7 +39,10 @@ resource "aws_instance" "ansible_controller" {
   }
 
   tags {
-    Name = "ansible_controller"
+    Name    = "ansible_controller"
+    Version = "2.2"
+    Type    = "Ansible"
+    Env     = "Production"
   }
 
   associate_public_ip_address = "true"
@@ -62,6 +65,17 @@ resource "aws_instance" "ansible_controller" {
       "sudo yum -y install krb5-devel krb5-libs krb5-workstation",
       "sudo `which pip` install kerberos requests-kerberos",
       "sudo `which pip` install --upgrade setuptools",
+      "sudo mkdir /github",
+      "cd /github",
+      "sudo git clone https://github.com/lcostea/ansible_install.git",
     ]
   }
+}
+
+module "ec2-burst-instance-alarms-ansible" {
+  source                   = "./../../modules/ec2-burst-instance-alarms"
+  ec2Id                    = "${aws_instance.ansible_controller.id }"
+  ec2Name                  = "ansible_controller"
+  minCreditsThreshold      = "10"
+  maxCreditsUsageThreshold = "3"
 }
