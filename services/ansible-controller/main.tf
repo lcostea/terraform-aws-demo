@@ -10,15 +10,25 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+
+  config {
+    bucket = "present-terraform-demo-aws"
+    key    = "vpc/terraform.tfstate"
+    region = "eu-central-1"
+  }
+}
+
 resource "aws_security_group" "ansible_controller" {
   name   = "ansible_controller"
-  vpc_id = "${var.vpc_id}"
+  vpc_id = "${data.terraform_remote_state.vpc.vpc_id}"
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["92.86.142.69/32"]
+    cidr_blocks = ["79.112.99.75/32"]
   }
 
   egress {
@@ -54,7 +64,7 @@ resource "aws_instance" "ansible_controller" {
 
   vpc_security_group_ids = ["${aws_security_group.ansible_controller.id}"]
 
-  subnet_id = "${var.subnet_id}"
+  subnet_id = "${data.terraform_remote_state.vpc.subnet_id}"
 
   provisioner "remote-exec" {
     inline = [
