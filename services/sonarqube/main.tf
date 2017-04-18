@@ -5,7 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "present-terraform-demo-aws"
-    key    = "services/web/terraform.tfstate"
+    key    = "services/sonarqube/terraform.tfstate"
     region = "eu-central-1"
   }
 }
@@ -20,7 +20,7 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-resource "aws_security_group" "webSecurity" {
+resource "aws_security_group" "sonarSecurity" {
   name   = "web"
   vpc_id = "${data.terraform_remote_state.vpc.vpc_id}"
 
@@ -28,14 +28,7 @@ resource "aws_security_group" "webSecurity" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["79.112.99.75/32", "10.0.1.0/24"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["79.112.62.30/32", "10.0.1.0/24"]
   }
 
   egress {
@@ -46,7 +39,7 @@ resource "aws_security_group" "webSecurity" {
   }
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance" "sonarqube" {
   connection {
     user        = "centos"
     timeout     = "10m"
@@ -56,29 +49,28 @@ resource "aws_instance" "web" {
   }
 
   tags {
-    Name    = "Production Web App 1"
+    Name    = "Development SonarQube"
     Version = "1.0"
-    Type    = "web"
-    Env     = "production"
+    Type    = "sonarqube"
+    Env     = "development"
   }
 
   associate_public_ip_address = "true"
-  instance_type               = "t2.small"
+  instance_type               = "t2.medium"
 
   ami = "ami-9bf712f4"
 
   key_name = "terraform-demo-eu-central"
 
-  vpc_security_group_ids = ["${aws_security_group.webSecurity.id}"]
+  vpc_security_group_ids = ["${aws_security_group.sonarSecurity.id}"]
 
   subnet_id = "${data.terraform_remote_state.vpc.subnet_id}"
 }
 
-module "ec2-burst-instance-alarms-web" {
+module "ec2-burst-instance-alarms-sonarqube" {
   source                   = "./../../modules/ec2-burst-instance-alarms"
-  ec2Id                    = "${aws_instance.web.id }"
-  ec2Name                  = "ansible_controller"
-  minCreditsThreshold      = "10"
-  maxCreditsUsageThreshold = "3"
+  ec2Id                    = "${aws_instance.sonarqube.id }"
+  ec2Name                  = "sonarqube"
+  minCreditsThreshold      = "15"
+  maxCreditsUsageThreshold = "4"
 }
-
