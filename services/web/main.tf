@@ -80,7 +80,7 @@ resource "aws_instance" "web" {
 module "ec2-burst-instance-alarms-web" {
   source                   = "./../../modules/ec2-burst-instance-alarms"
   ec2Id                    = "${aws_instance.web.id }"
-  ec2Name                  = "ansible_controller"
+  ec2Name                  = "Production Web App 1"
   minCreditsThreshold      = "10"
   maxCreditsUsageThreshold = "3"
 }
@@ -136,7 +136,7 @@ resource "aws_instance" "worker" {
 module "ec2-burst-instance-alarms-worker" {
   source                   = "./../../modules/ec2-burst-instance-alarms"
   ec2Id                    = "${aws_instance.worker.id }"
-  ec2Name                  = "ansible_controller"
+  ec2Name                  = "Production Worker App 1"
   minCreditsThreshold      = "10"
   maxCreditsUsageThreshold = "3"
 }

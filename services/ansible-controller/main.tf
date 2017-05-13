@@ -28,7 +28,7 @@ resource "aws_security_group" "ansible_controller" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["79.112.62.30/32"]
+    cidr_blocks = ["217.156.73.170/32"]
   }
 
   egress {
